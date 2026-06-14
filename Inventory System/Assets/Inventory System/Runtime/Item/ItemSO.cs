@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace InventorySystem.Runtime
 {
@@ -8,13 +9,17 @@ namespace InventorySystem.Runtime
 
         string ItemName { get; }
         string Description { get; }
-        int MaxStack { get; }
+        MaxStack MaxStack { get; }
+        Sprite UISprite { get; }
+        Color UISpriteColor { get; }
         IItem Prefab { get; }
 
         #endregion
 
-        #region Method
+        #region Methods
 
+        void UpdateSpriteRenderer(SpriteRenderer spriteRenderer);
+        void UpdateImage(Image image);
         IItem Instantiate();
 
         #endregion
@@ -44,8 +49,10 @@ namespace InventorySystem.Runtime
 
         [Header("Basic Info")]
         [SerializeField] private string m_itemName;
-        [SerializeField] private string m_description;
-        [SerializeField, Min(1)] private int m_maxStack = 1;
+        [SerializeField, TextArea(4, 4)] private string m_description;
+        [SerializeField] private MaxStack m_maxStack = MaxStack.Unstackable;
+        [SerializeField] private Sprite m_uiSprite;
+        [SerializeField] private Color m_uiSpriteColor = Color.white;
         [SerializeField] private TItem m_prefab;
 
         #endregion
@@ -54,7 +61,9 @@ namespace InventorySystem.Runtime
 
         public string ItemName => m_itemName;
         public string Description => m_description;
-        public int MaxStack => m_maxStack;
+        public MaxStack MaxStack => m_maxStack;
+        public Sprite UISprite => m_uiSprite;
+        public Color UISpriteColor => m_uiSpriteColor;
         public TItem Prefab => m_prefab;
 
         #endregion
@@ -65,8 +74,18 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Method
+        #region Methods
 
+        public void UpdateSpriteRenderer(SpriteRenderer spriteRenderer)
+        {
+            spriteRenderer.sprite = m_uiSprite;
+            spriteRenderer.color = m_uiSpriteColor;
+        }
+        public void UpdateImage(Image image)
+        {
+            image.sprite = m_uiSprite;
+            image.color = m_uiSpriteColor;
+        }
         public TItem Instantiate() => Instantiate(m_prefab);
 
         #endregion
