@@ -170,3 +170,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Item
   m_itemSO: {fileID: 11400000, guid: fadcb5cd8f9a4ec4cbd23bb8531c0a24, type: 2}
+  m_collider2D: {fileID: 5337774582636126723}

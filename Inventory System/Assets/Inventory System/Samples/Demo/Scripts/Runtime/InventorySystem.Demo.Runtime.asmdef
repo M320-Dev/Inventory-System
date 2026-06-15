@@ -2,7 +2,9 @@
     "name": "InventorySystem.Demo.Runtime",
     "rootNamespace": "InventorySystem.Demo.Runtime",
     "references": [
-        "GUID:33c634679962e284cbb52c90e9f63d83"
+        "GUID:33c634679962e284cbb52c90e9f63d83",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

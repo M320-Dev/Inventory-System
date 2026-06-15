@@ -16,10 +16,14 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Methods
+        #region Properties
 
-        void UpdateSpriteRenderer(SpriteRenderer spriteRenderer);
-        void UpdateImage(Image image);
+        bool IsStackable { get; }
+
+        #endregion
+
+        #region Method
+
         IItem Instantiate();
 
         #endregion
@@ -74,18 +78,8 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Methods
+        #region Method
 
-        public void UpdateSpriteRenderer(SpriteRenderer spriteRenderer)
-        {
-            spriteRenderer.sprite = m_uiSprite;
-            spriteRenderer.color = m_uiSpriteColor;
-        }
-        public void UpdateImage(Image image)
-        {
-            image.sprite = m_uiSprite;
-            image.color = m_uiSpriteColor;
-        }
         public TItem Instantiate() => Instantiate(m_prefab);
 
         #endregion

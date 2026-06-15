@@ -25,7 +25,7 @@ namespace InventorySystem.Demo.Runtime
             {
                 Gizmos.color = m_spawnAreaColor;
 
-                Gizmos.DrawWireCube(Vector3.zero, new(m_spawnExtentX * 2f, m_spawnExtentY * 2f));
+                Gizmos.DrawWireCube(transform.position, new(m_spawnExtentX * 2f, m_spawnExtentY * 2f));
             }
         }
 
@@ -38,7 +38,7 @@ namespace InventorySystem.Demo.Runtime
             float x = Random.Range(-m_spawnExtentX, m_spawnExtentX);
             float y = Random.Range(-m_spawnExtentY, m_spawnExtentY);
 
-            Instantiate(m_itemPrefab, new Vector3(x, y), Quaternion.identity);
+            Instantiate(m_itemPrefab, transform.position + new Vector3(x, y), Quaternion.identity);
         }
     }
 }

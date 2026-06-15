@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace InventorySystem.Runtime
 {
@@ -20,8 +21,8 @@ namespace InventorySystem.Runtime
 
         #region Properties
 
-        int CurrentSize { get; }
-        int MaxSize { get; }
+        int Stack { get; }
+        int MaxStack { get; }
 
         bool IsEmpty { get; }
         bool IsFull { get; }
@@ -33,11 +34,8 @@ namespace InventorySystem.Runtime
         event Action<IReadOnlyList<IItem>> ItemsAdded;
         event Action<IReadOnlyList<IItem>> ItemsRemoved;
 
-        #endregion
-
-        #region Clear
-
-        void ClearItems();
+        event Action<IReadOnlyList<IItem>> Slotted;
+        event Action<IReadOnlyList<IItem>> Unslotted;
 
         #endregion
 
@@ -54,6 +52,7 @@ namespace InventorySystem.Runtime
         bool TryRemoveItem(out IItem item);
         IItem RemoveItem();
         List<IItem> RemoveItems(int stack);
+        IItem[] RemoveAllItems();
 
         #endregion
 
@@ -68,7 +67,7 @@ namespace InventorySystem.Runtime
     {
         #region Field
 
-        private IItem[] _items;
+        private IItem[] _items = Array.Empty<IItem>();
 
         #endregion
 
@@ -86,11 +85,11 @@ namespace InventorySystem.Runtime
 
         #region Properties
 
-        public int CurrentSize { get; private set; }
-        public int MaxSize => _items.Length;
+        public int Stack { get; private set; }
+        public int MaxStack => _items.Length;
 
-        public bool IsEmpty => CurrentSize <= 0;
-        public bool IsFull => CurrentSize >= MaxSize;
+        public bool IsEmpty => Stack <= 0;
+        public bool IsFull => Stack >= MaxStack;
 
         #endregion
 
@@ -99,25 +98,42 @@ namespace InventorySystem.Runtime
         public event Action<IReadOnlyList<IItem>> ItemsAdded;
         public event Action<IReadOnlyList<IItem>> ItemsRemoved;
 
+        public event Action<IReadOnlyList<IItem>> Slotted;
+        public event Action<IReadOnlyList<IItem>> Unslotted;
+
+        #endregion
+
+        #region Constructor
+
+        public Slot() 
+        {
+            ItemsAdded += items => 
+            {
+                if (Stack == items.Count)
+                {
+                    Slotted?.Invoke(items);
+                }
+            };
+            ItemsRemoved += items =>
+            {
+                if (Stack == 0)
+                {
+                    Unslotted?.Invoke(items);
+                }
+            };
+        }
+
         #endregion
 
         #region Get
 
         public IItem GetItem(int index)
         {
-            TryThrowNotWithinCurrentSize(index);
+            TryThrowNotWithinStack(index);
 
             return _items[index];
         }
 
-        #endregion
-
-        #region Clear
-
-        public void ClearItems() 
-        {
-            Array.Clear(_items, 0, CurrentSize);
-        }
         #endregion
 
         #region Add
@@ -131,7 +147,7 @@ namespace InventorySystem.Runtime
                 ItemSO = item.ItemSO;
                 Array.Resize(ref _items, ItemSO.MaxStack);
 
-                _items[CurrentSize++] = item;
+                _items[Stack++] = item;
 
                 ItemsAdded?.Invoke(new IItem[] { item });
 
@@ -139,7 +155,7 @@ namespace InventorySystem.Runtime
             }
             else if (!IsFull && ItemSO == item.ItemSO)
             {
-                _items[CurrentSize++] = item;
+                _items[Stack++] = item;
 
                 ItemsAdded?.Invoke(new IItem[] { item });
 
@@ -167,7 +183,7 @@ namespace InventorySystem.Runtime
                     ItemSO = item.ItemSO;
                     Array.Resize(ref _items, ItemSO.MaxStack);
 
-                    _items[CurrentSize++] = item;
+                    _items[Stack++] = item;
 
                     addedItems.Add(item);
                 }
@@ -179,7 +195,7 @@ namespace InventorySystem.Runtime
 
                 if (item != null && !ContainsItem(item) && ItemSO == item.ItemSO)
                 {
-                    _items[CurrentSize++] = item;
+                    _items[Stack++] = item;
 
                     addedItems.Add(item);
                 }
@@ -202,10 +218,10 @@ namespace InventorySystem.Runtime
         {
             if (IsEmpty) return null;
 
-            IItem removedItem = _items[--CurrentSize];
+            IItem removedItem = _items[--Stack];
 
             if (IsEmpty) Array.Resize(ref _items, 0);
-            else _items[CurrentSize] = null;
+            else _items[Stack] = null;
 
             ItemsRemoved?.Invoke(new IItem[] { removedItem });
 
@@ -215,20 +231,39 @@ namespace InventorySystem.Runtime
         {
             if (IsEmpty || stack < 1) return new();
 
-            stack = Math.Min(stack, CurrentSize);
-            int startIndex = CurrentSize - stack;
+            stack = Math.Min(stack, Stack);
+            int startIndex = Stack - stack;
 
             List<IItem> removedItems = new();
 
-            for (int i = CurrentSize - 1; i >= startIndex; i--)
+            for (int i = Stack - 1; i >= startIndex; i--)
             {
-                IItem removedItem = _items[--CurrentSize];
+                IItem removedItem = _items[--Stack];
 
                 removedItems.Add(removedItem);
 
                 if (IsEmpty) Array.Resize(ref _items, 0);
-                else _items[CurrentSize] = null;
+                else _items[Stack] = null;
             }
+
+            ItemsRemoved?.Invoke(removedItems);
+
+            return removedItems;
+        }
+        public IItem[] RemoveAllItems() 
+        {
+            if (IsEmpty) return Array.Empty<IItem>();
+
+            IItem[] removedItems = new IItem[Stack];
+
+            for (int i = 0; i < Stack; i++)
+            {
+                removedItems[i] = _items[i];
+            }
+
+            Stack = 0;
+
+            Array.Resize(ref _items, 0);
 
             ItemsRemoved?.Invoke(removedItems);
 
@@ -241,7 +276,7 @@ namespace InventorySystem.Runtime
 
         public bool ContainsItem(IItem item)
         {
-            for (int i = 0; i < CurrentSize; i++)
+            for (int i = 0; i < Stack; i++)
             {
                 if (_items[i] == item) return true;
             }
@@ -265,14 +300,14 @@ namespace InventorySystem.Runtime
 
         #region Within Current Size
 
-        private bool WithinCurrentSize(int index) 
+        private bool WithinStack(int index) 
         {
-            return index >= 0 && index < CurrentSize;
+            return index >= 0 && index < Stack;
         }
-        private void TryThrowNotWithinCurrentSize(int index)
+        private void TryThrowNotWithinStack(int index)
         {
-            if (!WithinCurrentSize(index)) throw new ArgumentOutOfRangeException(
-                nameof(index), index, "Index must not be negative and must be less than the CurrentSize of this ItemSlot.");
+            if (!WithinStack(index)) throw new ArgumentOutOfRangeException(
+                nameof(index), index, "Index must not be negative and must be less than the Stack of this ItemSlot.");
         }
 
         #endregion
