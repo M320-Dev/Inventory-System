@@ -1,36 +1,47 @@
+using Addons.Delegate.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace InventorySystem.Runtime
 {
-    internal sealed class ItemDictionary 
+    internal sealed class ItemDictionary<TSlot>
+        where TSlot : IReadOnlySlot
     {
-        public Dictionary<ISlot, List<IItem>> dictionary { get; private set; } = new();
+        public Dictionary<TSlot, List<IItem>> dictionary { get; private set; } = new();
 
-        public void AddSlot(ISlot slot)
+        public void AddSlot(TSlot slot)
         {
             dictionary.Add(slot, new());
         }
 
-        public void AddItem(ISlot slot, IItem item) 
+        public void AddItem(TSlot slot, IItem item)
         {
             if (dictionary.TryGetValue(slot, out List<IItem> items)) items.Add(item);
             else dictionary.Add(slot, new() { item });
         }
-        public void AddItems(ISlot slot, IEnumerable<IItem> items)
+        public void AddItems(TSlot slot, IEnumerable<IItem> items)
         {
             foreach (var item in items) AddItem(slot, item);
         }
     }
 
-    public delegate void ItemsUpdatedHandler(Dictionary<ISlot, List<IItem>> itemDictionary);
+    #region Delegates
 
-    public interface IInventory : IEnumerable<ISlot>
+    public delegate void ItemsUpdatedHandler<TSlot>(Dictionary<TSlot, List<IItem>> itemDictionary)
+        where TSlot : IReadOnlySlot;
+    public delegate TSlot SlotConstructor<TSlot>(int index)
+        where TSlot : IReadOnlySlot;
+
+    #endregion
+
+    #region Interfaces
+
+    public interface IReadOnlyInventory : IEnumerable
     {
         #region Indexer
 
-        ISlot this[int index] { get; }
+        IReadOnlySlot this[int index] { get; }
 
         #endregion
 
@@ -52,10 +63,28 @@ namespace InventorySystem.Runtime
 
         #endregion
 
+        #region Contains
+
+        bool ContainsItem(IItem item);
+
+        #endregion
+    }
+    public interface IReadOnlyInventory<out TSlot> : IReadOnlyInventory
+        where TSlot : IReadOnlySlot
+    {
+        #region Indexer
+
+        IReadOnlySlot IReadOnlyInventory.this[int index] => this[index];
+        new TSlot this[int index] { get; }
+
+        #endregion
+    }
+    public interface IInventory : IReadOnlyInventory<ISlot>
+    {
         #region Events
 
-        event ItemsUpdatedHandler ItemsAdded;
-        event ItemsUpdatedHandler ItemsRemoved;
+        event ItemsUpdatedHandler<ISlot> ItemsAdded;
+        event ItemsUpdatedHandler<ISlot> ItemsRemoved;
 
         #endregion
 
@@ -76,39 +105,111 @@ namespace InventorySystem.Runtime
         #region Remove
 
         bool TryRemoveItem(Type itemSOType, out IItem item);
-        bool TryRemoveItem<TItemSO>(out IItem item) 
+        bool TryRemoveItem<TItemSO>(out IItem item)
             where TItemSO : IItemSO;
 
         IItem RemoveItem(Type itemSOType);
-        IItem RemoveItem<TItemSO>() 
+        IItem RemoveItem<TItemSO>()
             where TItemSO : IItemSO;
 
         Dictionary<ISlot, List<IItem>> RemoveItems(Type itemSOType, int stack);
-        Dictionary<ISlot, List<IItem>> RemoveItems<TItemSO>(int stack) 
+        Dictionary<ISlot, List<IItem>> RemoveItems<TItemSO>(int stack)
             where TItemSO : IItemSO;
 
         Dictionary<ISlot, List<IItem>> RemoveAllItems();
 
         #endregion
+    }
+    public interface IInventory<TSlot> : IInventory
+        where TSlot : ISlot
+    {
+        #region Indexer
 
-        #region Contains
+        ISlot IReadOnlyInventory<ISlot>.this[int index] => this[index];
+        new TSlot this[int index] { get; }
 
-        bool ContainsItem(IItem item);
+        #endregion
+
+        #region Events
+
+        new event ItemsUpdatedHandler<TSlot> ItemsAdded;
+        new event ItemsUpdatedHandler<TSlot> ItemsRemoved;
+
+        #endregion
+
+        #region Resize
+
+        Dictionary<ISlot, List<IItem>> IInventory.Resize(int slotCount) 
+        {
+            return ItemDictionaryUtility.Convert(Resize(slotCount), item => (ISlot)item);
+        }
+        new Dictionary<TSlot, List<IItem>> Resize(int slotCount);
+
+        #endregion
+
+        #region Add
+
+        Dictionary<ISlot, List<IItem>> IInventory.AddItems(params IItem[] items) 
+        {
+            return ItemDictionaryUtility.Convert(AddItems(items), item => (ISlot)item);
+        }
+        Dictionary<ISlot, List<IItem>> IInventory.AddItems(IEnumerable<IItem> items) 
+        {
+            return ItemDictionaryUtility.Convert(AddItems(items), item => (ISlot)item);
+        }
+
+        new Dictionary<TSlot, List<IItem>> AddItems(params IItem[] items);
+        new Dictionary<TSlot, List<IItem>> AddItems(IEnumerable<IItem> items);
+
+        #endregion
+
+        #region Remove
+
+        Dictionary<ISlot, List<IItem>> IInventory.RemoveItems(Type itemSOType, int stack) 
+        {
+            return ItemDictionaryUtility.Convert(RemoveItems(itemSOType, stack), item => (ISlot)item);
+        }
+        Dictionary<ISlot, List<IItem>> IInventory.RemoveItems<TItemSO>(int stack)
+        {
+            return ItemDictionaryUtility.Convert(RemoveItems<TItemSO>(stack), item => (ISlot)item);
+        }
+
+        Dictionary<ISlot, List<IItem>> IInventory.RemoveAllItems() 
+        {
+            return ItemDictionaryUtility.Convert(RemoveAllItems(), item => (ISlot)item);
+        }
+
+        new Dictionary<TSlot, List<IItem>> RemoveItems(Type itemSOType, int stack);
+        new Dictionary<TSlot, List<IItem>> RemoveItems<TItemSO>(int stack)
+            where TItemSO : IItemSO;
+
+        new Dictionary<TSlot, List<IItem>> RemoveAllItems();
 
         #endregion
     }
 
-    public sealed class Inventory : IInventory
-    {
-        #region Field
+    #endregion
 
-        private ISlot[] _slots;
+    public class Inventory<TSlot> : IInventory<TSlot>
+        where TSlot : ISlot
+    {
+        #region Fields
+
+        private SlotConstructor<TSlot> _slotConstructor;
+        private TSlot[] _slots;
 
         #endregion
 
         #region Indexer
 
-        public ISlot this[int index] => GetSlot(index);
+        public TSlot this[int index]
+        {
+            get
+            {
+                TryThrowNotWithinSizeException(index);
+                return _slots[index];
+            }
+        }
 
         #endregion
 
@@ -132,34 +233,52 @@ namespace InventorySystem.Runtime
 
         #region Events
 
-        public event ItemsUpdatedHandler ItemsAdded;
-        public event ItemsUpdatedHandler ItemsRemoved;
+        private DelegateAdapter<ItemsUpdatedHandler<ISlot>, ItemsUpdatedHandler<TSlot>> itemsAddedAdapter;
+        private DelegateAdapter<ItemsUpdatedHandler<ISlot>, ItemsUpdatedHandler<TSlot>> itemsRemovedAdapter;
+
+        event ItemsUpdatedHandler<ISlot> IInventory.ItemsAdded 
+        {
+            add => itemsAddedAdapter.Add(value);
+            remove => itemsAddedAdapter.Remove(value);
+        }
+        event ItemsUpdatedHandler<ISlot> IInventory.ItemsRemoved 
+        {
+            add => itemsRemovedAdapter.Add(value);
+            remove => itemsRemovedAdapter.Remove(value);
+        }
+
+        public event ItemsUpdatedHandler<TSlot> ItemsAdded;
+        public event ItemsUpdatedHandler<TSlot> ItemsRemoved;
 
         #endregion
 
         #region Constructor
 
-        public Inventory(int slotCount) 
+        public Inventory(int slotCount, SlotConstructor<TSlot> slotConstructor)
         {
             TryThrowNonPositiveSlotCountException(slotCount);
 
-            _slots = new ISlot[slotCount];
+            _slotConstructor = slotConstructor ?? throw new ArgumentNullException(nameof(slotConstructor));
+
+            _slots = new TSlot[slotCount];
 
             for (int i = 0; i < slotCount; i++) ConstructSlot(i);
+
+            ConstructDelegateAdapters();
         }
 
-        private ISlot ConstructSlot(int index) 
+        private TSlot ConstructSlot(int index)
         {
-            ISlot slot = _slots[index] = new Slot();
+            TSlot slot = _slots[index] = _slotConstructor.Invoke(index);
 
             slot.ItemsAdded += items => ItemCount += items.Count;
             slot.ItemsRemoved += (previousItemSO, removedItems) => ItemCount -= removedItems.Count;
 
-            slot.Slotted += items => 
+            slot.Slotted += items =>
             {
                 Slot(slot.ItemSO.MaxStack);
             };
-            slot.Unslotted += (previousItemSO, removedItems) => 
+            slot.Unslotted += (previousItemSO, removedItems) =>
             {
                 Unslot(previousItemSO.MaxStack);
             };
@@ -167,28 +286,30 @@ namespace InventorySystem.Runtime
             return slot;
         }
 
-        #endregion
-
-        #region Get
-
-        public ISlot GetSlot(int index)
+        private void ConstructDelegateAdapters() 
         {
-            TryThrowNotWithinSizeException(index);
+            itemsAddedAdapter = new(
+                handler => itemDictionary => handler.Invoke(ItemDictionaryUtility.Convert(itemDictionary, item => (ISlot)item)),
+                handler => ItemsAdded += handler,
+                handler => ItemsAdded -= handler);
 
-            return _slots[index];
+            itemsRemovedAdapter = new(
+                handler => itemDictionary => handler.Invoke(ItemDictionaryUtility.Convert(itemDictionary, item => (ISlot)item)),
+                handler => ItemsRemoved += handler,
+                handler => ItemsRemoved -= handler);
         }
 
         #endregion
 
         #region Resize
 
-        public Dictionary<ISlot, List<IItem>> Resize(int slotCount) 
+        public Dictionary<TSlot, List<IItem>> Resize(int slotCount)
         {
             TryThrowNonPositiveSlotCountException(slotCount);
 
             int slotCountDiff = slotCount - SlotCount;
 
-            ItemDictionary addedOrRemoveditems = new();
+            ItemDictionary<TSlot> addedOrRemoveditems = new();
 
             if (slotCountDiff > 0)
             {
@@ -196,16 +317,16 @@ namespace InventorySystem.Runtime
 
                 for (int i = SlotCount; i < slotCount; i++)
                 {
-                    ISlot slot = ConstructSlot(i);
+                    TSlot slot = ConstructSlot(i);
 
                     addedOrRemoveditems.AddSlot(slot);
                 }
             }
-            else if (slotCountDiff < 0) 
+            else if (slotCountDiff < 0)
             {
                 for (int i = SlotCount - 1; i >= slotCount; i--)
                 {
-                    ISlot slot = _slots[i];
+                    TSlot slot = _slots[i];
 
                     addedOrRemoveditems.AddItems(slot, slot.RemoveAllItems());
                 }
@@ -224,30 +345,30 @@ namespace InventorySystem.Runtime
 
         #region Add
 
-        public bool AddItem(IItem item) 
+        public bool AddItem(IItem item)
         {
             return AddItemHelper(item, (slot, item) =>
             {
-                ItemDictionary itemDictionary = new();
+                ItemDictionary<TSlot> itemDictionary = new();
                 itemDictionary.AddItem(slot, item);
                 ItemsAdded?.Invoke(itemDictionary.dictionary);
             });
         }
-        public Dictionary<ISlot, List<IItem>> AddItems(params IItem[] items) 
+        public Dictionary<TSlot, List<IItem>> AddItems(params IItem[] items)
         {
             return AddItems((IEnumerable<IItem>)items);
         }
-        public Dictionary<ISlot, List<IItem>> AddItems(IEnumerable<IItem> items) 
+        public Dictionary<TSlot, List<IItem>> AddItems(IEnumerable<IItem> items)
         {
             IEnumerator<IItem> enumerator = items.GetEnumerator();
 
-            ItemDictionary addedItems = new();
+            ItemDictionary<TSlot> addedItems = new();
 
-            while (enumerator.MoveNext()) 
+            while (enumerator.MoveNext())
             {
                 IItem item = enumerator.Current;
 
-                AddItemHelper(item, (slot, item) => 
+                AddItemHelper(item, (slot, item) =>
                 {
                     addedItems.AddItem(slot, item);
                 });
@@ -258,7 +379,7 @@ namespace InventorySystem.Runtime
             return addedItems.dictionary;
         }
 
-        private bool AddItemHelper(IItem item, Action<ISlot, IItem> itemAdded)
+        private bool AddItemHelper(IItem item, Action<TSlot, IItem> itemAdded)
         {
             if (item == null || IsFull || ContainsItem(item)) return false;
 
@@ -292,7 +413,7 @@ namespace InventorySystem.Runtime
 
         #region Remove
 
-        public bool TryRemoveItem(Type itemSOType, out IItem item) 
+        public bool TryRemoveItem(Type itemSOType, out IItem item)
         {
             return (item = RemoveItem(itemSOType)) != null;
         }
@@ -302,7 +423,7 @@ namespace InventorySystem.Runtime
             return TryRemoveItem(typeof(TItemSO), out item);
         }
 
-        public IItem RemoveItem(Type itemSOType) 
+        public IItem RemoveItem(Type itemSOType)
         {
             if (itemSOType == null) return null;
 
@@ -311,11 +432,11 @@ namespace InventorySystem.Runtime
             foreach (var slot in _slots)
             {
                 IItemSO itemSO = slot.ItemSO;
-                if (itemSO?.GetType() == itemSOType) 
+                if (itemSO?.GetType() == itemSOType)
                 {
                     IItem removedItem = slot.RemoveItem();
 
-                    ItemDictionary itemDictionary = new();
+                    ItemDictionary<TSlot> itemDictionary = new();
                     itemDictionary.AddItem(slot, removedItem);
                     ItemsRemoved?.Invoke(itemDictionary.dictionary);
 
@@ -331,11 +452,11 @@ namespace InventorySystem.Runtime
             return RemoveItem(typeof(TItemSO));
         }
 
-        public Dictionary<ISlot, List<IItem>> RemoveItems(Type itemSOType, int stack) 
+        public Dictionary<TSlot, List<IItem>> RemoveItems(Type itemSOType, int stack)
         {
             if (itemSOType == null || IsEmpty || stack < 1) return new();
 
-            ItemDictionary removedItems = new();
+            ItemDictionary<TSlot> removedItems = new();
 
             foreach (var slot in _slots)
             {
@@ -352,17 +473,17 @@ namespace InventorySystem.Runtime
 
             return removedItems.dictionary;
         }
-        public Dictionary<ISlot, List<IItem>> RemoveItems<TItemSO>(int stack)
+        public Dictionary<TSlot, List<IItem>> RemoveItems<TItemSO>(int stack)
             where TItemSO : IItemSO
         {
             return RemoveItems(typeof(TItemSO), stack);
         }
 
-        public Dictionary<ISlot, List<IItem>> RemoveAllItems() 
+        public Dictionary<TSlot, List<IItem>> RemoveAllItems()
         {
             if (IsEmpty) return new();
 
-            ItemDictionary removedItems = new();
+            ItemDictionary<TSlot> removedItems = new();
 
             foreach (var slot in _slots)
             {
@@ -378,7 +499,7 @@ namespace InventorySystem.Runtime
 
         #region Contains
 
-        public bool ContainsItem(IItem item) 
+        public bool ContainsItem(IItem item)
         {
             foreach (var slot in _slots)
             {
@@ -391,7 +512,7 @@ namespace InventorySystem.Runtime
 
         #region Enumerator
 
-        public IEnumerator<ISlot> GetEnumerator()
+        public IEnumerator<TSlot> GetEnumerator()
         {
             foreach (var slot in _slots)
             {
@@ -404,7 +525,7 @@ namespace InventorySystem.Runtime
 
         #region Helpers
 
-        private void Slot(int MaxStack) 
+        private void Slot(int MaxStack)
         {
             MaxItemCount += MaxStack;
             SlottedSlotCount++;
@@ -432,5 +553,67 @@ namespace InventorySystem.Runtime
         }
 
         #endregion
+    }
+
+    public static class InventoryUtility
+    {
+        #region Swap
+
+        public static void Swap(this IReadOnlyInventory<ISwappableSlot> inventory, int indexA, int indexB)
+        {
+            if (inventory == null || 
+                indexA == indexB) return;
+
+            SwapInternal(inventory, indexA, indexB);
+        }
+        internal static void SwapInternal(this IReadOnlyInventory<ISwappableSlot> inventory, int indexA, int indexB)
+        {
+            SlotUtility.SwapInternal(inventory[indexA], inventory[indexB]);
+        }
+
+        #endregion
+
+        #region Transfer
+
+        public static List<IItem> Transfer(this IReadOnlyInventory<ISlot> inventory, int indexFrom, int indexTo)
+        {
+            if (inventory == null ||
+                indexFrom == indexTo) return new();
+
+            return TransferInternal(inventory, indexFrom, indexTo);
+        }
+        internal static List<IItem> TransferInternal(this IReadOnlyInventory<ISlot> inventory, int indexFrom, int indexTo)
+        {
+            return SlotUtility.TransferInternal(inventory[indexFrom], inventory[indexTo]);
+        }
+
+        #endregion
+    }
+
+    public static class InventoryFactory 
+    {
+        public static Inventory<TSlot> ParameterlessSlotConstructor<TSlot>(int slotCount)
+            where TSlot : ISlot, new()
+        {
+            return new(slotCount, index => new());
+        }
+    }
+
+    public static class ItemDictionaryUtility 
+    {
+        public static Dictionary<ISlotTo, List<IItem>> Convert<ISlotFrom, ISlotTo>(
+            Dictionary<ISlotFrom, List<IItem>> itemDictionary, 
+            Converter<ISlotFrom, ISlotTo> converter
+            ) 
+            where ISlotFrom : IReadOnlySlot
+            where ISlotTo : IReadOnlySlot
+        {
+            Dictionary<ISlotTo, List<IItem>> _itemDictionary = new();
+            foreach (var pair in itemDictionary)
+            {
+                _itemDictionary.Add(converter.Invoke(pair.Key), pair.Value);
+            }
+            return _itemDictionary;
+        }
     }
 }

@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.m320.addons.delegate": {
+      "version": "https://github.com/M320-Dev/Packages.git?path=/Addons/Delegate",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "32b63b544234f9f17ce6ddd796a1ecfba79ad0c2"
+    },
     "com.unity.2d.animation": {
       "version": "13.0.4",
       "depth": 0,

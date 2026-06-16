@@ -1,7 +1,9 @@
 {
     "name": "InventorySystem.Runtime",
     "rootNamespace": "InventorySystem.Runtime",
-    "references": [],
+    "references": [
+        "GUID:007ab854b3f20124e8746e786219bfc2"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

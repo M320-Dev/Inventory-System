@@ -4,10 +4,16 @@ using System.Collections.Generic;
 
 namespace InventorySystem.Runtime
 {
+    #region Delegates
+
     public delegate void ItemsRemoveHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
     public delegate void UnslotHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
 
-    public interface ISlot : IEnumerable<IItem>
+    #endregion
+
+    #region Interfaces
+
+    public interface IReadOnlySlot : IEnumerable<IItem>
     {
         #region Indexer
 
@@ -31,6 +37,38 @@ namespace InventorySystem.Runtime
 
         #endregion
 
+        #region Contains
+
+        bool ContainsItem(IItem item);
+
+        #endregion
+    }
+    public interface ISwappableSlot : IReadOnlySlot
+    {
+        #region Field Properties
+
+        internal ICollection<IItem> Items { get; set; }
+
+        IItemSO IReadOnlySlot.ItemSO => ItemSO;
+        internal new IItemSO ItemSO { get; set; }
+
+        #endregion
+
+        #region Properties
+
+        int IReadOnlySlot.Stack => Stack;
+        internal new int Stack { get; set; }
+
+        #endregion
+
+        #region Swap With
+
+        void SwapWith(ISwappableSlot other);
+
+        #endregion
+    }
+    public interface ISlot : IReadOnlySlot
+    {
         #region Events
 
         event Action<IReadOnlyList<IItem>> ItemsAdded;
@@ -58,14 +96,16 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Contains
+        #region Transfer To
 
-        bool ContainsItem(IItem item);
+        List<IItem> TransferTo(ISlot other);
 
         #endregion
     }
 
-    public sealed class Slot : ISlot
+    #endregion
+
+    public sealed class Slot : ISlot, ISwappableSlot
     {
         #region Field
 
@@ -73,19 +113,41 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Field Property
+        #region Indexer
+
+        public IItem this[int index]
+        {
+            get
+            {
+                TryThrowNotWithinStack(index);
+                return _items[index];
+            }
+        }
+
+        #endregion
+
+        #region Field Properties
+
+        ICollection<IItem> ISwappableSlot.Items
+        {
+            get => _items; 
+            set 
+            {
+                ICollection<IItem> collection = value;
+                _items = new IItem[collection.Count];
+                collection.CopyTo(_items, 0);
+            } 
+        }
+
+        IItemSO ISwappableSlot.ItemSO { get => ItemSO; set => ItemSO = value; }
 
         public IItemSO ItemSO { get; private set; }
 
         #endregion
 
-        #region Indexer
-
-        public IItem this[int index] => GetItem(index);
-
-        #endregion
-
         #region Properties
+
+        int ISwappableSlot.Stack { get => Stack; set => Stack = value; }
 
         public int Stack { get; private set; }
         public int MaxStack => _items.Length;
@@ -123,17 +185,6 @@ namespace InventorySystem.Runtime
                     Unslotted?.Invoke(previousItemSO, removedItems);
                 }
             };
-        }
-
-        #endregion
-
-        #region Get
-
-        public IItem GetItem(int index)
-        {
-            TryThrowNotWithinStack(index);
-
-            return _items[index];
         }
 
         #endregion
@@ -290,6 +341,24 @@ namespace InventorySystem.Runtime
 
         #endregion
 
+        #region Swap With
+
+        public void SwapWith(ISwappableSlot other)
+        {
+            SlotUtility.SwapMatchingType(this, other);
+        }
+
+        #endregion
+
+        #region Transfer To
+
+        public List<IItem> TransferTo(ISlot other)
+        {
+            return SlotUtility.Transfer(this, other);
+        }
+
+        #endregion
+
         #region Enumerator
 
         public IEnumerator<IItem> GetEnumerator()
@@ -323,6 +392,66 @@ namespace InventorySystem.Runtime
         private bool WithinStack(int index) 
         {
             return index >= 0 && index < Stack;
+        }
+
+        #endregion
+    }
+
+    public static class SlotUtility 
+    {
+        #region Swap
+
+        public static void SwapMatchingType(ISwappableSlot a, ISwappableSlot b)
+        {
+            if (a == null ||
+                b == null ||
+                a == b ||
+                a.GetType() != b.GetType()) return;
+
+            SwapInternal(a, b);
+        }
+        public static void Swap(ISwappableSlot a, ISwappableSlot b)
+        {
+            if (a == null || 
+                b == null || 
+                a == b) return;
+
+            SwapInternal(a, b);
+        }
+        internal static void SwapInternal(ISwappableSlot a, ISwappableSlot b)
+        {
+            (a.Items, b.Items) = (b.Items, a.Items);
+            (a.ItemSO, b.ItemSO) = (b.ItemSO, a.ItemSO);
+            (a.Stack, b.Stack) = (b.Stack, a.Stack);
+        }
+
+        #endregion
+
+        #region Transfer
+
+        public static List<IItem> TransferMatchingType(ISlot from, ISlot to)
+        {
+            if (from == null ||
+                to == null ||
+                from == to ||
+                from.GetType() != to.GetType()) return new();
+
+            return TransferInternal(from, to);
+        }
+        public static List<IItem> Transfer(ISlot from, ISlot to)
+        {
+            if (from == null || 
+                to == null ||
+                from == to) return new();
+
+            return TransferInternal(from, to);
+        }
+        internal static List<IItem> TransferInternal(ISlot from, ISlot to)
+        {
+            int stack = to.MaxStack - to.Stack;
+            List<IItem> items = from.RemoveItems(stack);
+            to.AddItems(items);
+            return items;
         }
 
         #endregion

@@ -9,11 +9,11 @@ namespace InventorySystem.Demo.Runtime
         [SerializeField, Min(1)] private int m_slotCount = 12;
         [SerializeField] private InventoryUI m_inventoryUI;
 
-        private Inventory _inventory;
+        private Inventory<Slot> _inventory;
 
         private void Awake()
         {
-            _inventory = new(m_slotCount);   
+            _inventory = InventoryFactory.ParameterlessSlotConstructor<Slot>(m_slotCount);
         }
         private void Start()
         {
