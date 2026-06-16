@@ -12,7 +12,7 @@ namespace InventorySystem.Demo.Runtime
 
         public IInventory inventory { get; private set; }
 
-        private readonly List<SlotUI> _slotUIs = new();
+        private List<SlotUI> _slotUIs;
 
         private int SlotCount => inventory != null ? inventory.SlotCount : 0;
         private int _previousSlotCount;
@@ -24,6 +24,7 @@ namespace InventorySystem.Demo.Runtime
 
         private void SetUpExistingSlotUIs()
         {
+            _slotUIs = new();
             foreach (RectTransform element in m_content)
             {
                 _slotUIs.Add(element.GetComponent<SlotUI>());
@@ -50,7 +51,7 @@ namespace InventorySystem.Demo.Runtime
 
                 UpdateUI();
 
-                if (inventory != null) _previousSlotCount = inventory.SlotCount;
+                _previousSlotCount = inventory != null ? inventory.SlotCount : 0;
             }
         }
 
@@ -61,14 +62,11 @@ namespace InventorySystem.Demo.Runtime
         {
             if (inventory == null) return;
 
-            Debug.Log("Update Inventory UI");
-
             float slotCountDiff = SlotCount - _previousSlotCount;
 
             if (slotCountDiff > 0)
             {
-                if (_previousSlotCount == 0) _previousSlotCount = 1;
-                for (int i = _previousSlotCount - 1; i < SlotCount; i++)
+                for (int i = _previousSlotCount; i < SlotCount; i++)
                 {
                     if (i >= _slotUIs.Count) InstantiateSlotUI(inventory[i]);
                     else

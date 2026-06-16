@@ -19,4 +19,4 @@ MonoBehaviour:
     m_value: 8
   m_uiSprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_uiSpriteColor: {r: 0, g: 1, b: 0, a: 1}
-  m_prefab: {fileID: 404526936598510047, guid: 3b5ee5da5e8d5fe41be7b2ea047b8748, type: 3}
+  m_prefab: {fileID: 404526936598510047, guid: 846bb7fa2fdf85e498e45f8ca767e633, type: 3}

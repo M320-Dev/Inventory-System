@@ -8,6 +8,11 @@ namespace InventorySystem.Runtime
     {
         public Dictionary<ISlot, List<IItem>> dictionary { get; private set; } = new();
 
+        public void AddSlot(ISlot slot)
+        {
+            dictionary.Add(slot, new());
+        }
+
         public void AddItem(ISlot slot, IItem item) 
         {
             if (dictionary.TryGetValue(slot, out List<IItem> items)) items.Add(item);
@@ -39,10 +44,11 @@ namespace InventorySystem.Runtime
         int SlottedSlotCount { get; }
         int UnslottedSlotCount { get; }
 
-        bool IsEmpty { get; }
-
         bool IsItemFull { get; }
         bool IsSlotFull { get; }
+
+        bool IsEmpty { get; }
+        bool IsFull { get; }
 
         #endregion
 
@@ -50,6 +56,12 @@ namespace InventorySystem.Runtime
 
         event ItemsUpdatedHandler ItemsAdded;
         event ItemsUpdatedHandler ItemsRemoved;
+
+        #endregion
+
+        #region Resize
+
+        Dictionary<ISlot, List<IItem>> Resize(int slotCount);
 
         #endregion
 
@@ -90,7 +102,7 @@ namespace InventorySystem.Runtime
     {
         #region Field
 
-        private readonly ISlot[] _slots;
+        private ISlot[] _slots;
 
         #endregion
 
@@ -110,10 +122,11 @@ namespace InventorySystem.Runtime
         public int SlottedSlotCount { get; private set; }
         public int UnslottedSlotCount => SlotCount - SlottedSlotCount;
 
-        public bool IsEmpty => ItemCount <= 0;
-
-        public bool IsItemFull => ItemCount >= MaxItemCount;
+        public bool IsItemFull => MaxItemCount != -1 && ItemCount >= MaxItemCount;
         public bool IsSlotFull => SlottedSlotCount >= SlotCount;
+
+        public bool IsEmpty => ItemCount <= 0;
+        public bool IsFull => IsItemFull && IsSlotFull;
 
         #endregion
 
@@ -128,31 +141,30 @@ namespace InventorySystem.Runtime
 
         public Inventory(int slotCount) 
         {
-            if (slotCount < 1) throw new ArgumentOutOfRangeException(
-                nameof(slotCount), slotCount, "Slot Count must be positive.");
+            TryThrowNonPositiveSlotCountException(slotCount);
 
             _slots = new ISlot[slotCount];
 
             for (int i = 0; i < slotCount; i++) ConstructSlot(i);
         }
 
-        private void ConstructSlot(int index) 
+        private ISlot ConstructSlot(int index) 
         {
             ISlot slot = _slots[index] = new Slot();
 
             slot.ItemsAdded += items => ItemCount += items.Count;
-            slot.ItemsRemoved += items => ItemCount -= items.Count;
+            slot.ItemsRemoved += (previousItemSO, removedItems) => ItemCount -= removedItems.Count;
 
             slot.Slotted += items => 
             {
-                MaxItemCount += slot.ItemSO.MaxStack;
-                SlottedSlotCount++;
+                Slot(slot.ItemSO.MaxStack);
             };
-            slot.Unslotted += items => 
+            slot.Unslotted += (previousItemSO, removedItems) => 
             {
-                MaxItemCount -= slot.ItemSO.MaxStack;
-                SlottedSlotCount--;
+                Unslot(previousItemSO.MaxStack);
             };
+
+            return slot;
         }
 
         #endregion
@@ -161,9 +173,51 @@ namespace InventorySystem.Runtime
 
         public ISlot GetSlot(int index)
         {
-            TryThrowNotWithinSize(index);
+            TryThrowNotWithinSizeException(index);
 
             return _slots[index];
+        }
+
+        #endregion
+
+        #region Resize
+
+        public Dictionary<ISlot, List<IItem>> Resize(int slotCount) 
+        {
+            TryThrowNonPositiveSlotCountException(slotCount);
+
+            int slotCountDiff = slotCount - SlotCount;
+
+            ItemDictionary addedOrRemoveditems = new();
+
+            if (slotCountDiff > 0)
+            {
+                Array.Resize(ref _slots, slotCount);
+
+                for (int i = SlotCount; i < slotCount; i++)
+                {
+                    ISlot slot = ConstructSlot(i);
+
+                    addedOrRemoveditems.AddSlot(slot);
+                }
+            }
+            else if (slotCountDiff < 0) 
+            {
+                for (int i = SlotCount - 1; i >= slotCount; i--)
+                {
+                    ISlot slot = _slots[i];
+
+                    addedOrRemoveditems.AddItems(slot, slot.RemoveAllItems());
+                }
+
+                Array.Resize(ref _slots, slotCount);
+
+                ItemsRemoved?.Invoke(addedOrRemoveditems.dictionary);
+
+                return addedOrRemoveditems.dictionary;
+            }
+
+            return addedOrRemoveditems.dictionary;
         }
 
         #endregion
@@ -172,7 +226,7 @@ namespace InventorySystem.Runtime
 
         public bool AddItem(IItem item) 
         {
-            return AddItemHelper(item, (slot, item) => 
+            return AddItemHelper(item, (slot, item) =>
             {
                 ItemDictionary itemDictionary = new();
                 itemDictionary.AddItem(slot, item);
@@ -204,9 +258,9 @@ namespace InventorySystem.Runtime
             return addedItems.dictionary;
         }
 
-        private bool AddItemHelper(IItem item, Action<ISlot, IItem> itemAdded) 
+        private bool AddItemHelper(IItem item, Action<ISlot, IItem> itemAdded)
         {
-            if (item == null || IsItemFull || ContainsItem(item)) return false;
+            if (item == null || IsFull || ContainsItem(item)) return false;
 
             // Add to slotted slot
             foreach (var slot in _slots)
@@ -250,12 +304,14 @@ namespace InventorySystem.Runtime
 
         public IItem RemoveItem(Type itemSOType) 
         {
+            if (itemSOType == null) return null;
+
             if (IsEmpty) return null;
 
             foreach (var slot in _slots)
             {
                 IItemSO itemSO = slot.ItemSO;
-                if (itemSO.GetType() == itemSOType) 
+                if (itemSO?.GetType() == itemSOType) 
                 {
                     IItem removedItem = slot.RemoveItem();
 
@@ -277,7 +333,7 @@ namespace InventorySystem.Runtime
 
         public Dictionary<ISlot, List<IItem>> RemoveItems(Type itemSOType, int stack) 
         {
-            if (IsEmpty || stack < 1) return new();
+            if (itemSOType == null || IsEmpty || stack < 1) return new();
 
             ItemDictionary removedItems = new();
 
@@ -287,9 +343,7 @@ namespace InventorySystem.Runtime
                 if (itemSO.GetType() == itemSOType)
                 {
                     List<IItem> _removedItems = slot.RemoveItems(stack);
-
                     stack -= _removedItems.Count;
-
                     removedItems.AddItems(slot, _removedItems);
                 }
             }
@@ -315,10 +369,6 @@ namespace InventorySystem.Runtime
                 removedItems.AddItems(slot, slot.RemoveAllItems());
             }
 
-            ItemCount = 0;
-            MaxItemCount = 0;
-            SlottedSlotCount = 0;
-
             ItemsRemoved?.Invoke(removedItems.dictionary);
 
             return removedItems.dictionary;
@@ -334,7 +384,6 @@ namespace InventorySystem.Runtime
             {
                 if (slot.ContainsItem(item)) return true;
             }
-
             return false;
         }
 
@@ -353,16 +402,33 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Within Size
+        #region Helpers
 
-        private bool WithinSize(int index)
+        private void Slot(int MaxStack) 
         {
-            return index >= 0 && index < SlotCount;
+            MaxItemCount += MaxStack;
+            SlottedSlotCount++;
         }
-        private void TryThrowNotWithinSize(int index)
+        private void Unslot(int MaxStack)
+        {
+            MaxItemCount -= MaxStack;
+            SlottedSlotCount--;
+        }
+
+        private void TryThrowNonPositiveSlotCountException(int slotCount)
+        {
+            if (slotCount < 1) throw new ArgumentOutOfRangeException(
+                nameof(slotCount), slotCount, "Slot Count must be positive.");
+        }
+
+        private void TryThrowNotWithinSizeException(int index)
         {
             if (!WithinSize(index)) throw new ArgumentOutOfRangeException(
                 nameof(index), index, "Index must not be negative and must be less than the Size of this Inventory.");
+        }
+        private bool WithinSize(int index)
+        {
+            return index >= 0 && index < SlotCount;
         }
 
         #endregion

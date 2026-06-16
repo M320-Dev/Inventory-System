@@ -7,14 +7,17 @@ namespace InventorySystem.Demo.Runtime
     {
         [SerializeField] private InventoryManagerInput m_input;
         [SerializeField, Min(1)] private int m_slotCount = 12;
-        [SerializeField] private InventoryUI m_ui;
+        [SerializeField] private InventoryUI m_inventoryUI;
 
         private Inventory _inventory;
 
         private void Awake()
         {
-            _inventory = new(m_slotCount);
-            m_ui.SetInventory(_inventory);
+            _inventory = new(m_slotCount);   
+        }
+        private void Start()
+        {
+            m_inventoryUI.SetInventory(_inventory);
         }
 
         private void OnEnable()

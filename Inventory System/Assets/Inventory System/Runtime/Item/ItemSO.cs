@@ -1,10 +1,12 @@
+using System;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace InventorySystem.Runtime
 {
     public interface IItemSO 
     {
+        Type ItemType { get; }
+
         #region Field Properties
 
         string ItemName { get; }
@@ -31,6 +33,8 @@ namespace InventorySystem.Runtime
     public interface IItemSO<TItem> : IItemSO
         where TItem : IItem
     {
+        Type IItemSO.ItemType => typeof(TItem);
+
         #region Field Propertie
 
         IItem IItemSO.Prefab => Prefab;
@@ -47,7 +51,7 @@ namespace InventorySystem.Runtime
     }
 
     public abstract class ItemSO<TItem> : ScriptableObject, IItemSO<TItem>
-        where TItem : Object, IItem
+        where TItem : UnityEngine.Object, IItem
     {
         #region Fields
 

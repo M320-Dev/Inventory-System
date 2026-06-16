@@ -1,14 +1,19 @@
+using System;
 using UnityEngine;
 
 namespace InventorySystem.Runtime
 {
-    public interface IItem 
+    public interface IItem
     {
+        Type ItemSOType { get; }
+
         IItemSO ItemSO { get; }
     }
     public interface IItem<TItemSO> : IItem
         where TItemSO : IItemSO
     {
+        Type IItem.ItemSOType => typeof(TItemSO);
+
         IItemSO IItem.ItemSO => ItemSO;
         new TItemSO ItemSO { get; }
     }

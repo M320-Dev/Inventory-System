@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace InventorySystem.Runtime
 {
+    public delegate void ItemsRemoveHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
+    public delegate void UnslotHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
+
     public interface ISlot : IEnumerable<IItem>
     {
         #region Indexer
@@ -32,10 +34,10 @@ namespace InventorySystem.Runtime
         #region Events
 
         event Action<IReadOnlyList<IItem>> ItemsAdded;
-        event Action<IReadOnlyList<IItem>> ItemsRemoved;
+        event ItemsRemoveHandler ItemsRemoved;
 
         event Action<IReadOnlyList<IItem>> Slotted;
-        event Action<IReadOnlyList<IItem>> Unslotted;
+        event UnslotHandler Unslotted;
 
         #endregion
 
@@ -89,17 +91,17 @@ namespace InventorySystem.Runtime
         public int MaxStack => _items.Length;
 
         public bool IsEmpty => Stack <= 0;
-        public bool IsFull => Stack >= MaxStack;
+        public bool IsFull => ItemSO != null && Stack >= MaxStack;
 
         #endregion
 
         #region Events
 
         public event Action<IReadOnlyList<IItem>> ItemsAdded;
-        public event Action<IReadOnlyList<IItem>> ItemsRemoved;
+        public event ItemsRemoveHandler ItemsRemoved;
 
         public event Action<IReadOnlyList<IItem>> Slotted;
-        public event Action<IReadOnlyList<IItem>> Unslotted;
+        public event UnslotHandler Unslotted;
 
         #endregion
 
@@ -114,11 +116,11 @@ namespace InventorySystem.Runtime
                     Slotted?.Invoke(items);
                 }
             };
-            ItemsRemoved += items =>
+            ItemsRemoved += (previousItemSO, removedItems) =>
             {
                 if (Stack == 0)
                 {
-                    Unslotted?.Invoke(items);
+                    Unslotted?.Invoke(previousItemSO, removedItems);
                 }
             };
         }
@@ -144,8 +146,7 @@ namespace InventorySystem.Runtime
 
             if (IsEmpty)
             {
-                ItemSO = item.ItemSO;
-                Array.Resize(ref _items, ItemSO.MaxStack);
+                SetItemSOAndResize(item.ItemSO);
 
                 _items[Stack++] = item;
 
@@ -180,8 +181,7 @@ namespace InventorySystem.Runtime
 
                 if (item != null)
                 {
-                    ItemSO = item.ItemSO;
-                    Array.Resize(ref _items, ItemSO.MaxStack);
+                    SetItemSOAndResize(item.ItemSO);
 
                     _items[Stack++] = item;
 
@@ -220,10 +220,11 @@ namespace InventorySystem.Runtime
 
             IItem removedItem = _items[--Stack];
 
-            if (IsEmpty) Array.Resize(ref _items, 0);
+            IItemSO previousItemSO = ItemSO;
+            if (IsEmpty) SetItemSOAndResize(null);
             else _items[Stack] = null;
 
-            ItemsRemoved?.Invoke(new IItem[] { removedItem });
+            ItemsRemoved?.Invoke(previousItemSO, new IItem[] { removedItem });
 
             return removedItem;
         }
@@ -236,17 +237,19 @@ namespace InventorySystem.Runtime
 
             List<IItem> removedItems = new();
 
+            IItemSO previousItemSO = ItemSO;
+
             for (int i = Stack - 1; i >= startIndex; i--)
             {
                 IItem removedItem = _items[--Stack];
 
                 removedItems.Add(removedItem);
 
-                if (IsEmpty) Array.Resize(ref _items, 0);
+                if (IsEmpty) SetItemSOAndResize(null);
                 else _items[Stack] = null;
             }
 
-            ItemsRemoved?.Invoke(removedItems);
+            ItemsRemoved?.Invoke(previousItemSO, removedItems);
 
             return removedItems;
         }
@@ -256,6 +259,7 @@ namespace InventorySystem.Runtime
 
             IItem[] removedItems = new IItem[Stack];
 
+
             for (int i = 0; i < Stack; i++)
             {
                 removedItems[i] = _items[i];
@@ -263,9 +267,10 @@ namespace InventorySystem.Runtime
 
             Stack = 0;
 
-            Array.Resize(ref _items, 0);
+            IItemSO previousItemSO = ItemSO;
+            SetItemSOAndResize(null);
 
-            ItemsRemoved?.Invoke(removedItems);
+            ItemsRemoved?.Invoke(previousItemSO, removedItems);
 
             return removedItems;
         }
@@ -298,16 +303,26 @@ namespace InventorySystem.Runtime
 
         #endregion
 
-        #region Within Current Size
+        #region Helpers
 
-        private bool WithinStack(int index) 
+        private void SetItemSOAndResize(IItemSO itemSO)
         {
-            return index >= 0 && index < Stack;
+            if (ItemSO != itemSO)
+            {
+                if (itemSO != null) Array.Resize(ref _items, itemSO.MaxStack);
+                else Array.Resize(ref _items, 0);
+            }
+            ItemSO = itemSO;
         }
+
         private void TryThrowNotWithinStack(int index)
         {
             if (!WithinStack(index)) throw new ArgumentOutOfRangeException(
                 nameof(index), index, "Index must not be negative and must be less than the Stack of this ItemSlot.");
+        }
+        private bool WithinStack(int index) 
+        {
+            return index >= 0 && index < Stack;
         }
 
         #endregion

@@ -19,14 +19,14 @@ namespace InventorySystem.Demo.Runtime
             {
                 if (this.slot != null)
                 {
-                    this.slot.ItemsAdded -= SlotUpdated;
-                    this.slot.ItemsRemoved -= SlotUpdated;
+                    this.slot.ItemsAdded -= ItemsAdded;
+                    this.slot.ItemsRemoved -= ItemsRemoved;
                 }
 
                 if (slot != null)
                 {
-                    slot.ItemsAdded += SlotUpdated;
-                    slot.ItemsRemoved += SlotUpdated;
+                    slot.ItemsAdded += ItemsAdded;
+                    slot.ItemsRemoved += ItemsRemoved;
                 }
 
                 this.slot = slot;
@@ -35,15 +35,12 @@ namespace InventorySystem.Demo.Runtime
             }
         }
 
-        private void SlotUpdated(IReadOnlyList<IItem> items) => UpdateUI();
+        private void ItemsAdded(IReadOnlyList<IItem> items) => UpdateUI();
+        private void ItemsRemoved(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems) => UpdateUI();
 
         [ContextMenu("Update UI")]
         private void UpdateUI()
         {
-            if (slot == null) return;
-
-            Debug.Log("Update Slot UI");
-
             UpdateItemImage();
             UpdateStackTMP();
         }
@@ -52,7 +49,7 @@ namespace InventorySystem.Demo.Runtime
             if (!m_itemImage) return;
 
             m_itemImage.enabled = Enabled();
-            if (!m_stackTMP.enabled) return;
+            if (!m_itemImage.enabled) return;
 
             m_itemImage.sprite = slot.ItemSO.UISprite;
             m_itemImage.color = slot.ItemSO.UISpriteColor;

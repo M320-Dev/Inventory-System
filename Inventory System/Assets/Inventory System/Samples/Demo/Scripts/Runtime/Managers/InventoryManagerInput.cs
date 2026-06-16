@@ -33,19 +33,29 @@ namespace InventorySystem.Demo.Runtime
 
         private void OnEnable()
         {
-            _takeAction.performed += _takeHandler;
-            _dropAction.performed += _dropHandler;
-
-            _takeAction.Enable();
-            _dropAction.Enable();
+            if (_takeAction != null) 
+            {
+                _takeAction.performed += _takeHandler;
+                _takeAction.Enable();
+            }
+            if (_dropAction != null)
+            {
+                _dropAction.performed += _dropHandler;
+                _dropAction.Enable();
+            }
         }
         private void OnDisable()
         {
-            _takeAction.Disable();
-            _dropAction.Disable();
-
-            _takeAction.performed -= _takeHandler;
-            _dropAction.performed -= _dropHandler;
+            if (_takeAction != null)
+            {
+                _takeAction.Disable();
+                _takeAction.performed -= _takeHandler;
+            }
+            if (_dropAction != null)
+            {
+                _dropAction.Disable();
+                _dropAction.performed -= _dropHandler;
+            }
         }
 
         private Vector2 CalculatePointerPosition() 
