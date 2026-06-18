@@ -1,0 +1,9 @@
+{
+  "name": "com.m320.item-system",
+  "version": "1.0.0",
+  "displayName": "Item System",
+  "description": "The basis for creating items.",
+  "author": {
+    "name": "M_320"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "com.m320.slot-system",
+  "version": "1.0.0",
+  "displayName": "Slot System",
+  "description": "The basis for containing individual items.",
+  "dependencies": {
+    "com.m320.item-system": "1.0.0"
+  },
+  "author": {
+    "name": "M_320"
+  }
+}

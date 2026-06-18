@@ -1,0 +1,16 @@
+{
+    "name": "SlotSystem.Runtime.Core",
+    "rootNamespace": "SlotSystem.Runtime.Core",
+    "references": [
+        "GUID:c2ad0404f828c3444bb690ac1f04f361"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

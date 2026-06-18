@@ -1,0 +1,21 @@
+{
+    "name": "InventorySystem.Samples.Demo.Runtime",
+    "rootNamespace": "InventorySystem.Samples.Demo.Runtime",
+    "references": [
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:c2ad0404f828c3444bb690ac1f04f361",
+        "GUID:0104582ad2f1f0f42a1f2e5db497ee1f",
+        "GUID:33c634679962e284cbb52c90e9f63d83",
+        "GUID:2667f953fb8dbc94682c5298fb63c427"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

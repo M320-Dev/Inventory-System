@@ -1,0 +1,21 @@
+{
+  "name": "com.m320.inventory-system",
+  "version": "1.0.0",
+  "displayName": "Inventory System",
+  "description": "The basis for containing multiple slots that contains items.",
+  "dependencies": {
+    "com.m320.addons.delegate": "1.0.0",
+    "com.m320.item-system": "1.0.0",
+    "com.m320.slot-system": "1.0.0"
+  },
+  "author": {
+    "name": "M_320"
+  },
+  "samples": [
+    {
+        "displayName": "Demo",
+        "description": "Contains a demo showcasing inventory management use.",
+        "path": "Samples~/Demo"
+    }
+  ]
+}
