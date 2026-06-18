@@ -5,8 +5,8 @@
   "description": "The basis for containing multiple slots that contains items.",
   "dependencies": {
     "com.m320.addons.delegate": "1.0.0",
-    "com.m320.item-system": "1.0.0",
-    "com.m320.slot-system": "1.0.0"
+    "com.m320.item-system": "https://github.com/M320-Dev/Packages.git?path=/Item-System",
+    "com.m320.slot-system": "https://github.com/M320-Dev/Packages.git?path=/Slot-System"
   },
   "author": {
     "name": "M_320"

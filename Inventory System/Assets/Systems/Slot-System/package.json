@@ -4,7 +4,7 @@
   "displayName": "Slot System",
   "description": "The basis for containing individual items.",
   "dependencies": {
-    "com.m320.item-system": "1.0.0"
+    "com.m320.item-system": "https://github.com/M320-Dev/Packages.git?path=/Item-System"
   },
   "author": {
     "name": "M_320"
