@@ -90,12 +90,14 @@ inventoryUI.SetInventory(inventory);
 ```csharp
 ISlot slot = ...;
 
+// Events
 slot.ItemsAdded += OnItemsAdded;
 slot.ItemsRemoved += OnItemsRemoved;
 
 slot.Slotted += OnSlotted;
 slot.Unslotted += OnUnslotted;
 
+// Handlers
 void OnItemsAdded(IReadOnlyList<IItem> items) { ... }
 void OnItemsRemoved(IItemSO previousItemSO, IReadOnlyList<IItem> items) { ... }
 
@@ -108,12 +110,14 @@ void OnUnslotted(IItemSO previousItemSO, IReadOnlyList<IItem> items) { ... }
 ```csharp
 IInventory<TSlot> inventory = ...;
 
+// Events
 inventory.ItemsAdded += OnItemsAdded;
 inventory.ItemsRemoved += OnItemsRemoved;
 
 inventory.SlotsSlotted += OnSlotsSlotted;
 inventory.SlotsUnslotted += OnSlotsUnslotted;
 
+// Handlers
 void OnItemsAdded(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 void OnItemsRemoved(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 
