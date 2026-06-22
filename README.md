@@ -10,14 +10,14 @@ Built to be extended via inheritance and composition for custom item, slot, and 
 
 ### Item
 
-- Create custom `Item<TItemSO>` types
-- Create custom `ItemSO<TItem>` definition types
+- Create custom `Item<TItemSO>` class types
+- Create custom `ItemSO<TItem>` scriptable-object types
 
 ---
 
 ### Slot
 
-- Create custom slot types
+- Create custom `ISlot` class types
 - Item containment and validation rules
 - Item stack support
 - Event-driven slot updates
@@ -28,7 +28,7 @@ Built to be extended via inheritance and composition for custom item, slot, and 
 
 ### Inventory
 
-- Create custom inventory types
+- Create custom `IInventory` class types
 - Event-driven inventory updates
 - Custom slot construction
 - Runtime inventory creation
@@ -65,18 +65,58 @@ Inventory<Slot> inventory = InventoryFactory.EmptySlots<Slot>(m_slotCount);
 
 ### UI Setup
 
-> Slot
+#### Slot
 
 ```csharp
 ISlot slot = ...;
 SlotUI slotUI = ...;
+
 slotUI.SetSlot(slot);
 ```
 
-> Inventory
+#### Inventory
 
 ```csharp
 IInventory inventory = ...;
 InventoryUI inventoryUI = ...;
+
 inventoryUI.SetInventory(inventory);
+```
+
+### Event Usage
+
+#### Slot
+
+```csharp
+ISlot slot = ...;
+
+slot.ItemsAdded += OnItemsAdded;
+slot.ItemsRemoved += OnItemsRemoved;
+
+slot.Slotted += OnSlotted;
+slot.Unslotted += OnUnslotted;
+
+void OnItemsAdded(IReadOnlyList<IItem> items) { ... }
+void OnItemsRemoved(IItemSO previousItemSO, IReadOnlyList<IItem> items) { ... }
+
+void OnSlotted(IReadOnlyList<IItem> items) { ... }
+void OnUnslotted(IItemSO previousItemSO, IReadOnlyList<IItem> items) { ... }
+```
+
+#### Inventory
+
+```csharp
+IInventory<TSlot> inventory = ...;
+
+inventory.ItemsAdded += OnItemsAdded;
+inventory.ItemsRemoved += OnItemsRemoved;
+
+inventory.SlotsSlotted += OnSlotsSlotted;
+inventory.SlotsUnslotted += OnSlotsUnslotted;
+
+void OnItemsAdded(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
+void OnItemsRemoved(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
+
+void OnSlotsSlotted(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
+void OnSlotsUnslotted(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 ```
