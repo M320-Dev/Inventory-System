@@ -231,6 +231,9 @@ namespace InventorySystem.Runtime.Core
         public event ItemsUpdatedHandler<TSlot> ItemsAdded;
         public event ItemsUpdatedHandler<TSlot> ItemsRemoved;
 
+        public event ItemsUpdatedHandler<TSlot> SlotsSlotted;
+        public event ItemsUpdatedHandler<TSlot> SlotsUnslotted;
+
         #endregion
 
         #region Constructor
@@ -246,6 +249,8 @@ namespace InventorySystem.Runtime.Core
             for (int i = 0; i < slotCount; i++) ConstructSlot(i);
 
             ConstructDelegateAdapters();
+
+            SubscribeSlottedAndUnslotted();
         }
 
         private TSlot ConstructSlot(int index)
@@ -278,6 +283,38 @@ namespace InventorySystem.Runtime.Core
                 handler => itemDictionary => handler.Invoke(ItemDictionaryUtility.Convert(itemDictionary, item => (ISlot)item)),
                 handler => ItemsRemoved += handler,
                 handler => ItemsRemoved -= handler);
+        }
+
+        private void SubscribeSlottedAndUnslotted() 
+        {
+            ItemsAdded += itemDictionary =>
+            {
+                ItemDictionary<TSlot> _itemDictionary = new();
+
+                foreach (var pair in itemDictionary)
+                {
+                    if (pair.Key.Stack == pair.Value.Count)
+                    {
+                        _itemDictionary.AddItems(pair.Key, pair.Value);
+                    }
+                }
+
+                SlotsSlotted?.Invoke(_itemDictionary.dictionary);
+            };
+            ItemsRemoved += itemDictionary =>
+            {
+                ItemDictionary<TSlot> _itemDictionary = new();
+
+                foreach (var pair in itemDictionary)
+                {
+                    if (pair.Key.Stack == 0)
+                    {
+                        _itemDictionary.AddItems(pair.Key, pair.Value);
+                    }
+                }
+
+                SlotsUnslotted?.Invoke(_itemDictionary.dictionary);
+            };
         }
 
         #endregion
@@ -573,7 +610,7 @@ namespace InventorySystem.Runtime.Core
 
     public static class InventoryFactory 
     {
-        public static Inventory<TSlot> ParameterlessSlotConstructor<TSlot>(int slotCount)
+        public static Inventory<TSlot> EmptySlots<TSlot>(int slotCount)
             where TSlot : ISlot, new()
         {
             return new(slotCount, index => new());

@@ -15,7 +15,7 @@ namespace InventorySystem.Samples.Demo.Runtime
 
         private void Awake()
         {
-            _inventory = InventoryFactory.ParameterlessSlotConstructor<Slot>(m_slotCount);
+            _inventory = InventoryFactory.EmptySlots<Slot>(m_slotCount);
         }
         private void Start()
         {

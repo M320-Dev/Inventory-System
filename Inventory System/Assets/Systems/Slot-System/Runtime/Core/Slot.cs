@@ -7,8 +7,8 @@ namespace SlotSystem.Runtime.Core
 {
     #region Delegates
 
-    public delegate void ItemsRemoveHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
-    public delegate void UnslotHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
+    public delegate void ItemsAddedHandler(IReadOnlyList<IItem> removedItems);
+    public delegate void ItemsRemovedHandler(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems);
 
     #endregion
 
@@ -78,11 +78,11 @@ namespace SlotSystem.Runtime.Core
     {
         #region Events
 
-        event Action<IReadOnlyList<IItem>> ItemsAdded;
-        event ItemsRemoveHandler ItemsRemoved;
+        event ItemsAddedHandler ItemsAdded;
+        event ItemsRemovedHandler ItemsRemoved;
 
-        event Action<IReadOnlyList<IItem>> Slotted;
-        event UnslotHandler Unslotted;
+        event ItemsAddedHandler Slotted;
+        event ItemsRemovedHandler Unslotted;
 
         #endregion
 
@@ -160,11 +160,11 @@ namespace SlotSystem.Runtime.Core
 
         #region Events
 
-        public event Action<IReadOnlyList<IItem>> ItemsAdded;
-        public event ItemsRemoveHandler ItemsRemoved;
+        public event ItemsAddedHandler ItemsAdded;
+        public event ItemsRemovedHandler ItemsRemoved;
 
-        public event Action<IReadOnlyList<IItem>> Slotted;
-        public event UnslotHandler Unslotted;
+        public event ItemsAddedHandler Slotted;
+        public event ItemsRemovedHandler Unslotted;
 
         #endregion
 
