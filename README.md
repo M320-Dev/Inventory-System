@@ -18,7 +18,7 @@ Built to be extended via inheritance and composition for custom item, slot, and 
 ### Slot
 
 - Create custom `ISlot` class types
-- Item containment and validation rules
+- Item containment (based on the cached ItemSO)
 - Item stack support
 - Event-driven slot updates
 - Event-driven UI display
@@ -28,13 +28,39 @@ Built to be extended via inheritance and composition for custom item, slot, and 
 
 ### Inventory
 
-- Create custom `IInventory` class types
+- Create custom `IInventory or IInventory<TSlot>` class types
 - Event-driven inventory updates
 - Custom slot construction
 - Runtime inventory creation
 - UI display
 
 ---
+
+## System Architecture Diagram
+
+```mermaid
+flowchart TD
+
+A[ItemSO - Static Data]
+B[Item - Runtime Instance]
+C[Slot - Item Storage]
+D[Inventory - Slot Storage]
+E[SlotUI]
+F[InventoryUI]
+
+A --> B
+B --> A
+
+A --> C
+B --> C
+
+C --> D
+C -->|Events| D
+C -->|Events| E
+
+D -->|Events| F
+E --> F
+```
 
 ## Quick Start
 
