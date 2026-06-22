@@ -9,8 +9,23 @@ namespace SlotSystem.Runtime.UI
 {
     public sealed class SlotUI : MonoBehaviour
     {
+        #region Inspector Fields
+
+        [SerializeField] private Image m_slotImage;
+        [SerializeField] private RectTransform m_itemStackRT;
         [SerializeField] private Image m_itemImage;
         [SerializeField] private TextMeshProUGUI m_stackTMP;
+
+        #endregion
+
+        #region Inspector Field Properties
+
+        public Image SlotImage => m_slotImage;
+        public RectTransform ItemStackRT => m_itemStackRT;
+        public Image ItemImage => m_itemImage;
+        public TextMeshProUGUI StackTMP => m_stackTMP;
+
+        #endregion
 
         public ISlot slot { get; private set; }
 
@@ -40,7 +55,7 @@ namespace SlotSystem.Runtime.UI
         private void ItemsRemoved(IItemSO previousItemSO, IReadOnlyList<IItem> removedItems) => UpdateUI();
 
         [ContextMenu("Update UI")]
-        private void UpdateUI()
+        public void UpdateUI()
         {
             UpdateItemImage();
             UpdateStackTMP();
@@ -68,6 +83,12 @@ namespace SlotSystem.Runtime.UI
         private bool Enabled()
         {
             return slot != null && slot.ItemSO != null;
+        }
+
+        public void SetItemStackRaycastTarget(bool value)
+        {
+            m_itemImage.raycastTarget = value;
+            m_stackTMP.raycastTarget = value;
         }
     }
 }

@@ -194,7 +194,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1381104516605082728}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 211db6e432e9e5e45943ead74a07f102, type: 3}
+  m_Script: {fileID: 11500000, guid: 502acf5102a28d244a7cf9ccdea5db55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: InventorySystem.Demo.Runtime::InventorySystem.Demo.Runtime.InventoryUI
   m_slotUIPrefab: {fileID: 7284026417396653263, guid: df8d04bcad1604445bae8a75ce50daeb, type: 3}

@@ -44,7 +44,7 @@ namespace SlotSystem.Runtime.Core
 
         #endregion
     }
-    public interface ISwappableSlot : IReadOnlySlot
+    public interface ISlotInternal : IReadOnlySlot
     {
         #region Field Properties
 
@@ -64,11 +64,17 @@ namespace SlotSystem.Runtime.Core
 
         #region Swap With
 
-        void SwapWith(ISwappableSlot other);
+        void SwapWith(ISlotInternal other);
+
+        #endregion
+
+        #region Transfer To
+
+        List<IItem> TransferTo(ISlot other);
 
         #endregion
     }
-    public interface ISlot : IReadOnlySlot
+    public interface ISlot : ISlotInternal
     {
         #region Events
 
@@ -96,17 +102,11 @@ namespace SlotSystem.Runtime.Core
         IItem[] RemoveAllItems();
 
         #endregion
-
-        #region Transfer To
-
-        List<IItem> TransferTo(ISlot other);
-
-        #endregion
     }
 
     #endregion
 
-    public sealed class Slot : ISlot, ISwappableSlot
+    public sealed class Slot : ISlot
     {
         #region Field
 
@@ -129,7 +129,7 @@ namespace SlotSystem.Runtime.Core
 
         #region Field Properties
 
-        ICollection<IItem> ISwappableSlot.Items
+        ICollection<IItem> ISlotInternal.Items
         {
             get => _items; 
             set 
@@ -140,7 +140,7 @@ namespace SlotSystem.Runtime.Core
             } 
         }
 
-        IItemSO ISwappableSlot.ItemSO { get => ItemSO; set => ItemSO = value; }
+        IItemSO ISlotInternal.ItemSO { get => ItemSO; set => ItemSO = value; }
 
         public IItemSO ItemSO { get; private set; }
 
@@ -148,12 +148,12 @@ namespace SlotSystem.Runtime.Core
 
         #region Properties
 
-        int ISwappableSlot.Stack { get => Stack; set => Stack = value; }
+        int ISlotInternal.Stack { get => Stack; set => Stack = value; }
 
         public int Stack { get; private set; }
         public int MaxStack => _items.Length;
 
-        public bool IsEmpty => Stack <= 0;
+        public bool IsEmpty => ItemSO == null || Stack <= 0;
         public bool IsFull => ItemSO != null && Stack >= MaxStack;
 
         #endregion
@@ -231,7 +231,8 @@ namespace SlotSystem.Runtime.Core
             {
                 IItem item = enumerator.Current;
 
-                if (item != null)
+                if (item != null && 
+                    item.ItemSO != null)
                 {
                     SetItemSOAndResize(item.ItemSO);
 
@@ -245,7 +246,9 @@ namespace SlotSystem.Runtime.Core
             {
                 IItem item = enumerator.Current;
 
-                if (item != null && !ContainsItem(item) && ItemSO == item.ItemSO)
+                if (item != null && 
+                    !ContainsItem(item) && 
+                    ItemSO == item.ItemSO)
                 {
                     _items[Stack++] = item;
 
@@ -344,7 +347,7 @@ namespace SlotSystem.Runtime.Core
 
         #region Swap With
 
-        public void SwapWith(ISwappableSlot other)
+        public void SwapWith(ISlotInternal other)
         {
             SlotUtility.SwapMatchingType(this, other);
         }
@@ -400,9 +403,68 @@ namespace SlotSystem.Runtime.Core
 
     public static class SlotUtility
     {
+        public readonly struct TransferOrSwapResult 
+        {
+            public enum Type 
+            {
+                Transfer,
+                Swap
+            }
+
+            public readonly List<IItem> items;
+            public readonly Type type;
+
+            public TransferOrSwapResult(List<IItem> items, Type type) 
+            {
+                this.items = items;
+                this.type = type;
+            }
+
+            public static TransferOrSwapResult Transfer(List<IItem> items)
+            {
+                return new(items, Type.Transfer);
+            }
+            public static TransferOrSwapResult Swap = new(new(), Type.Swap);
+        }
+
+        #region Transfer Or Swap
+
+        public static TransferOrSwapResult TransferOrSwapMatchingType(ISlot from, ISlot to)
+        {
+            if (from == null ||
+                to == null ||
+                from == to ||
+                from.GetType() != to.GetType()) return new();
+
+            return TransferOrSwapInternal(from, to);
+        }
+        public static TransferOrSwapResult TransferOrSwap(ISlot from, ISlot to) 
+        {
+            if (from == null ||
+                to == null ||
+                from == to) return new();
+
+            return TransferOrSwapInternal(from, to);
+        }
+        public static TransferOrSwapResult TransferOrSwapInternal(ISlot from, ISlot to)
+        {
+            if (from.ItemSO == to.ItemSO)
+            {
+                List<IItem> transferredItems = TransferInternal(from, to);
+                return TransferOrSwapResult.Transfer(transferredItems);
+            }
+            else
+            {
+                SwapInternal(from, to);
+                return TransferOrSwapResult.Swap;
+            }
+        }
+
+        #endregion
+
         #region Swap
 
-        public static void SwapMatchingType(ISwappableSlot a, ISwappableSlot b)
+        public static void SwapMatchingType(ISlotInternal a, ISlotInternal b)
         {
             if (a == null ||
                 b == null ||
@@ -411,7 +473,7 @@ namespace SlotSystem.Runtime.Core
 
             SwapInternal(a, b);
         }
-        public static void Swap(ISwappableSlot a, ISwappableSlot b)
+        public static void Swap(ISlotInternal a, ISlotInternal b)
         {
             if (a == null ||
                 b == null ||
@@ -419,7 +481,7 @@ namespace SlotSystem.Runtime.Core
 
             SwapInternal(a, b);
         }
-        public static void SwapInternal(ISwappableSlot a, ISwappableSlot b)
+        public static void SwapInternal(ISlotInternal a, ISlotInternal b)
         {
             (a.Items, b.Items) = (b.Items, a.Items);
             (a.ItemSO, b.ItemSO) = (b.ItemSO, a.ItemSO);
@@ -449,8 +511,9 @@ namespace SlotSystem.Runtime.Core
         }
         public static List<IItem> TransferInternal(ISlot from, ISlot to)
         {
-            int stack = to.MaxStack - to.Stack;
+            int stack = !to.IsEmpty ? to.MaxStack - to.Stack : from.Stack;
             List<IItem> items = from.RemoveItems(stack);
+
             to.AddItems(items);
             return items;
         }

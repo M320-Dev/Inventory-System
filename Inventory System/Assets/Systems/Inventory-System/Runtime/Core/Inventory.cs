@@ -540,14 +540,14 @@ namespace InventorySystem.Runtime.Core
     {
         #region Swap
 
-        public static void Swap(this IReadOnlyInventory<ISwappableSlot> inventory, int indexA, int indexB)
+        public static void Swap(this IReadOnlyInventory<ISlot> inventory, int indexA, int indexB)
         {
             if (inventory == null || 
                 indexA == indexB) return;
 
             SwapInternal(inventory, indexA, indexB);
         }
-        internal static void SwapInternal(this IReadOnlyInventory<ISwappableSlot> inventory, int indexA, int indexB)
+        internal static void SwapInternal(this IReadOnlyInventory<ISlot> inventory, int indexA, int indexB)
         {
             SlotUtility.SwapInternal(inventory[indexA], inventory[indexB]);
         }
