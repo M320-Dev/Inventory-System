@@ -81,7 +81,7 @@ Inventory<Slot> inventory = new(m_slotCount, ConstructSlot);
 Slot ConstructSlot(int index) => new Slot();
 ```
 
-> or
+#### or
 
 ```csharp
 Inventory<Slot> inventory = InventoryFactory.EmptySlots<Slot>(m_slotCount);
