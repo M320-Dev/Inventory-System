@@ -2,14 +2,16 @@
 
 Event-driven item, slot, and inventory framework with interactive UI support for Unity.
 
+Built to be extended via inheritance and composition for custom item, slot, and inventory behaviors.
+
 ---
 
 ## Features
 
 ### Item
 
-- Create custom item types
-- Create custom itemSO types
+- Create custom `Item<TItemSO>` types
+- Create custom `ItemSO<TItem>` definition types
 
 ---
 
@@ -29,6 +31,7 @@ Event-driven item, slot, and inventory framework with interactive UI support for
 - Create custom inventory types
 - Event-driven inventory updates
 - Custom slot construction
+- Runtime inventory creation
 - UI display
 
 ---
@@ -47,25 +50,33 @@ public sealed class FruitSO : ItemSO<Fruit> { ... }
 ### Inventory Construction
 
 ```csharp
-Inventory<Slot> inventory;
-
-inventory = new(m_slotCount, ConstructSlot);
-inventory = InventoryFactory.EmptySlots<Slot>(m_slotCount);
+Inventory<Slot> inventory = new(m_slotCount, ConstructSlot);
 
 Slot ConstructSlot(int index) => new Slot();
+```
+
+> or
+
+```csharp
+Inventory<Slot> inventory = InventoryFactory.EmptySlots<Slot>(m_slotCount);
 ```
 
 ---
 
 ### UI Setup
 
+> Slot
+
 ```csharp
-SlotUI slotUI = ...;
-InventoryUI inventoryUI = ...;
-
 ISlot slot = ...;
-IInventory inventory = ...;
-
+SlotUI slotUI = ...;
 slotUI.SetSlot(slot);
+```
+
+> Inventory
+
+```csharp
+IInventory inventory = ...;
+InventoryUI inventoryUI = ...;
 inventoryUI.SetInventory(inventory);
 ```
