@@ -155,4 +155,4 @@ void OnSlotsUnslotted(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 
 ## Requirements
 
-Unity 6000.3+
+- Unity 6000.3+
