@@ -150,3 +150,9 @@ void OnItemsRemoved(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 void OnSlotsSlotted(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 void OnSlotsUnslotted(Dictionary<TSlot, List<IItem>> itemDictionary) { ... }
 ```
+
+---
+
+## Requirements
+
+Unity 6000.3+
