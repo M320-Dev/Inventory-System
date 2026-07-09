@@ -1,9 +1,8 @@
-using ItemSystem.Runtime;
 using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace ItemSystem.Editor
+namespace M320.ItemSystem.Editor
 {
     [CustomPropertyDrawer(typeof(MaxStack))]
     public sealed class MaxStack_PropertyDrawer : PropertyDrawer

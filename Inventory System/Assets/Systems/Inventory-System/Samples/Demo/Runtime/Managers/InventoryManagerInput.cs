@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace InventorySystem.Samples.Demo.Runtime
+namespace M320.InventorySystem.Samples.Demo
 {
     public sealed class InventoryManagerInput : MonoBehaviour
     {

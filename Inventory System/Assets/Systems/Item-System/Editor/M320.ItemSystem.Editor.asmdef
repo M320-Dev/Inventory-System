@@ -1,8 +1,12 @@
 {
-    "name": "ItemSystem.Runtime",
-    "rootNamespace": "ItemSystem.Runtime",
-    "references": [],
-    "includePlatforms": [],
+    "name": "M320.ItemSystem.Editor",
+    "rootNamespace": "M320.ItemSystem.Editor",
+    "references": [
+        "GUID:c2ad0404f828c3444bb690ac1f04f361"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

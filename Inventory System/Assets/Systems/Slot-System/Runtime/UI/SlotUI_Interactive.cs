@@ -1,9 +1,8 @@
-using SlotSystem.Runtime.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace SlotSystem.Runtime.UI
+namespace M320.SlotSystem.UI
 {
     public sealed class SlotUI_Interactive : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace InventorySystem.Samples.Demo.Runtime
+namespace M320.InventorySystem.Samples.Demo
 {
     public static class ItemManager 
     {

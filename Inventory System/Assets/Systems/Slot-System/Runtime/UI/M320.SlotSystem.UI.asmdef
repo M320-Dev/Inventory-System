@@ -1,6 +1,6 @@
 {
-    "name": "SlotSystem.Runtime.UI",
-    "rootNamespace": "SlotSystem.Runtime.UI",
+    "name": "M320.SlotSystem.UI",
+    "rootNamespace": "M320.SlotSystem.UI",
     "references": [
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:c2ad0404f828c3444bb690ac1f04f361",

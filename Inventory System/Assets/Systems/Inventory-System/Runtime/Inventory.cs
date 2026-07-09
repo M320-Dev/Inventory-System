@@ -1,11 +1,12 @@
-using Addons.Delegate.Runtime;
-using ItemSystem.Runtime;
-using SlotSystem.Runtime.Core;
+using M320.Addons.Delegate;
+using M320.ItemSystem;
+using M320.SlotSystem;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace InventorySystem.Runtime.Core
+namespace M320.InventorySystem
 {
     #region Delegates
 

@@ -1,9 +1,10 @@
-using ItemSystem.Runtime;
-using SlotSystem.Runtime.Core;
+using M320.ItemSystem;
+using M320.SlotSystem;
+
 using System;
 using System.Collections.Generic;
 
-namespace InventorySystem.Runtime.Core
+namespace M320.InventorySystem
 {
     internal sealed class ItemDictionary<TSlot>
         where TSlot : IReadOnlySlot

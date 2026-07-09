@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace ItemSystem.Runtime
+namespace M320.ItemSystem
 {
     [Serializable]
     public struct MaxStack

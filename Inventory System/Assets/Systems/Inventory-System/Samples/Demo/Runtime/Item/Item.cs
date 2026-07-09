@@ -1,7 +1,7 @@
-using ItemSystem.Runtime;
+using M320.ItemSystem;
 using UnityEngine;
 
-namespace InventorySystem.Samples.Demo.Runtime 
+namespace M320.InventorySystem.Samples.Demo
 { 
     public sealed class Item : Item<ItemSO> 
     {

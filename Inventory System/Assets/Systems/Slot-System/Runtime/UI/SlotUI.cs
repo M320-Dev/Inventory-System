@@ -1,11 +1,10 @@
-using ItemSystem.Runtime;
-using SlotSystem.Runtime.Core;
+using M320.ItemSystem;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
-namespace SlotSystem.Runtime.UI
+namespace M320.SlotSystem.UI
 {
     public sealed class SlotUI : MonoBehaviour
     {

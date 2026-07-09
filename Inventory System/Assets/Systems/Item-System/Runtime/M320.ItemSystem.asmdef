@@ -1,11 +1,7 @@
 {
-    "name": "InventorySystem.Runtime.Core",
-    "rootNamespace": "InventorySystem.Runtime.Core",
-    "references": [
-        "GUID:007ab854b3f20124e8746e786219bfc2",
-        "GUID:c2ad0404f828c3444bb690ac1f04f361",
-        "GUID:0104582ad2f1f0f42a1f2e5db497ee1f"
-    ],
+    "name": "M320.ItemSystem",
+    "rootNamespace": "M320.ItemSystem",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

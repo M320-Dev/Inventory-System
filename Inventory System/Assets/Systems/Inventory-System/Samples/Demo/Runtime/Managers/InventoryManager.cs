@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace InventorySystem.Samples.Demo.Runtime
+namespace M320.InventorySystem.Samples.Demo
 {
     public sealed class InventoryManager : MonoBehaviour
     {

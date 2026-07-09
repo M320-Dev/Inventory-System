@@ -1,8 +1,11 @@
 {
-    "name": "SlotSystem.Runtime.Core",
-    "rootNamespace": "SlotSystem.Runtime.Core",
+    "name": "M320.InventorySystem.UI",
+    "rootNamespace": "M320.InventorySystem.UI",
     "references": [
-        "GUID:c2ad0404f828c3444bb690ac1f04f361"
+        "GUID:c2ad0404f828c3444bb690ac1f04f361",
+        "GUID:0104582ad2f1f0f42a1f2e5db497ee1f",
+        "GUID:3af3190ad71c0ba468c272a508449953",
+        "GUID:33c634679962e284cbb52c90e9f63d83"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

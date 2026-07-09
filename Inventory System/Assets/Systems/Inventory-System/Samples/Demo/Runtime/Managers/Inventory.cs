@@ -1,10 +1,10 @@
-using InventorySystem.Runtime.Core;
-using InventorySystem.Runtime.UI;
-using ItemSystem.Runtime;
-using SlotSystem.Runtime.Core;
+using M320.InventorySystem.UI;
+using M320.ItemSystem;
+using M320.SlotSystem;
+
 using UnityEngine;
 
-namespace InventorySystem.Samples.Demo.Runtime
+namespace M320.InventorySystem.Samples.Demo
 {
     public sealed class Inventory : MonoBehaviour
     {

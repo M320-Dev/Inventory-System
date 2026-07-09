@@ -1,6 +1,6 @@
 {
-    "name": "InventorySystem.Samples.Demo.Runtime",
-    "rootNamespace": "InventorySystem.Samples.Demo.Runtime",
+    "name": "M320.InventorySystem.Samples.Demo",
+    "rootNamespace": "M320.InventorySystem.Samples.Demo",
     "references": [
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:75469ad4d38634e559750d17036d5f7c",

@@ -1,9 +1,10 @@
-using ItemSystem.Runtime;
+using M320.ItemSystem;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace SlotSystem.Runtime.Core
+namespace M320.SlotSystem
 {
     #region Delegates
 
