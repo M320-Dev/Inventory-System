@@ -972,6 +972,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Room
       objectReference: {fileID: 0}
+    - target: {fileID: 6425068934910471437, guid: 193df07962eafa9459dfda660606b5a7, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 18.777779
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425068934910471437, guid: 193df07962eafa9459dfda660606b5a7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

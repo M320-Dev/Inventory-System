@@ -4,9 +4,9 @@
   "displayName": "Inventory System",
   "description": "The basis for containing multiple slots that contains items.",
   "dependencies": {
-    "com.m320.addons.delegate": "https://github.com/M320-Dev/Delegate-Addons-Package.git",
-    "com.m320.item-system": "https://github.com/M320-Dev/Item-System-Package.git",
-    "com.m320.slot-system": "https://github.com/M320-Dev/Slot-System-Package.git"
+    "com.m320.addons.delegate": "https://github.com/M320-Dev/Delegate-Addons-Package.git#v1.0.0",
+    "com.m320.item-system": "https://github.com/M320-Dev/Item-System-Package.git#v1.0.0",
+    "com.m320.slot-system": "https://github.com/M320-Dev/Slot-System-Package.git#v1.0.0"
   },
   "author": {
     "name": "M_320"
